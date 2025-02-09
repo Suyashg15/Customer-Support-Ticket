@@ -5,6 +5,8 @@ from pydantic import BaseModel, EmailStr
 from sentiment_analysis import analyze_sentiment_gemini, clean_text
 from issue_escalation import required_issue_escalation, issue_escalation
 from response_automation import get_product_body, get_product_subject
+from pinecone_embedding import rag_pipeline
+from webhook import send_email
 import re
 import traceback
 import pickle
@@ -14,19 +16,14 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import requests
-
+import google.generativeai as genai
+from pymongo import MongoClient
+from datetime import datetime
+import os
+from dotenv import load_dotenv
 
 app = FastAPI()
 
-# Load the K-means model, vectorizer, and PCA at startup
-with open('kmeans_model.pkl', 'rb') as model_file:
-    kmeans_model = pickle.load(model_file)
-
-with open('vectorizer.pkl', 'rb') as vectorizer_file:
-    vectorizer = pickle.load(vectorizer_file)
-
-with open('pca_model.pkl', 'rb') as pca_file:
-    pca_model = pickle.load(pca_file)
 
 class SentimentRequest(BaseModel):
     text: str
@@ -147,48 +144,46 @@ def preprocess_text(text):
 def response_automation(email: EmailStr, subject:str, text:str):
     try:
         
-        product_subject = get_product_subject(str(subject))
-        if not product_subject:
-            product_body = get_product_body(str(text))
+        # product_subject = get_product_subject(str(subject))
+        # if not product_subject:
+        #     product_body = get_product_body(str(text))
         
-        ticket = subject 
+        response = rag_pipeline(subject +" "+ text)
         
-        processed_ticket = preprocess_text(ticket)
+        # ticket = subject 
         
-        input_vector = vectorizer.fit_transform([processed_ticket])
+        # processed_ticket = preprocess_text(ticket)
+        
+        # input_vector = vectorizer.fit_transform([processed_ticket])
     
-        # Apply PCA transformations
-        input_pca = pca_model.transform(input_vector.toarray())
+        # # Apply PCA transformations
+        # input_pca = pca_model.transform(input_vector.toarray())
         
-        # Predict the cluster for the input PCA vector
-        prediction = kmeans_model.predict(input_pca)
+        # # Predict the cluster for the input PCA vector
+        # prediction = kmeans_model.predict(input_pca)
         
         return {
             "Email": email,
             "Subject":subject,
             "Body":text,
-            "Product Name": product_subject or product_body,
-            "Cluster-no":int(prediction[0]),
-            # 'Type': Type
+            "Response":response
         }
         
     except Exception as e:
         return {"error": f"Analysis failed: {str(e)}"}
 
 # Replace this with your Zapier webhook URL
-ZAPIER_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/21326674/2k99gpi/"
+ZAPIER_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/21630305/2afz1n8/"
 
 @app.post("/webhook")
-def send_email(from_email: str, to_email: str, subject: str, message: str):
+def send_email(to_email: EmailStr, subject: str, message: str):
     # Validate the input
-    if not from_email or "@" not in from_email:
-        raise HTTPException(status_code=400, detail="Invalid sender email address")
+
     if not to_email or "@" not in to_email:
         raise HTTPException(status_code=400, detail="Invalid recipient email address")
 
     # Prepare the payload for Zapier
     payload = {
-        "from_email": from_email,
         "to_email": to_email,
         "subject": subject,
         "message": message
@@ -204,6 +199,83 @@ def send_email(from_email: str, to_email: str, subject: str, message: str):
         # Handle any errors from the request
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 
+load_dotenv()
+
+# MongoDB Atlas connection setup
+MONGODB_URI = os.getenv('MONGODB_URI')
+if not MONGODB_URI:
+    MONGODB_URI = "mongodb+srv://suyashg1975:MgDILwn3bI0vxAsU@cluster0.vmfci.mongodb.net/?retryWrites=true&w=majority"
+
+try:
+    client = MongoClient(MONGODB_URI)
+    # Test the connection
+    client.admin.command('ping')
+    print("Successfully connected to MongoDB Atlas")
+    
+    db = client['customer_support']
+    issues_collection = db['issues']
+except Exception as e:
+    print(f"Error connecting to MongoDB Atlas: {e}")
+    raise
+
+
+@app.post("/save-issue")
+def save_issue(email: EmailStr, subject:str, text:str):
+    try:
+        # Create document to insert
+        cleaned_subject = clean_text(str(subject))
+        cleaned_text = clean_text(str(text))
+        
+        # print(f"Cleaned subject: {cleaned_subject}")
+        # print(f"Cleaned text: {cleaned_text}")
+        
+        # Process body text
+        priority_body = issue_escalation(cleaned_text)
+        check_escalation_body = required_issue_escalation(priority_body)
+        
+        # Process subject
+        priority_subject = issue_escalation(cleaned_subject)
+        check_escalation_subject = required_issue_escalation(priority_subject)
+        
+        # Final escalation check
+        final_check_escalation = check_escalation_body or check_escalation_subject
+        
+        response = rag_pipeline(subject +" "+ text)
+        
+        if final_check_escalation:
+            issue_document = {
+            "email": email,
+            "subject": subject,
+            "text": text,
+            "escalation_required": final_check_escalation,
+            "created_at": datetime.utcnow()
+        }
+        else:
+            
+            issue_document = {
+                "email": email,
+                "subject": subject,
+                "text": text,
+                "response":response,
+                "created_at": datetime.utcnow()
+            }
+        
+        send_email(email,subject,response)
+        # Insert into MongoDB Atlas
+        result = issues_collection.insert_one(issue_document)
+        
+        
+        return {
+            "status": "success",
+            "message": "Issue saved successfully and solution has been Send to you Email to MongoDB Atlas",
+            "issue_id": str(result.inserted_id)
+        }
+    except Exception as e:
+        print(f"MongoDB Error: {str(e)}")  # For debugging
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to save issue: {str(e)}"
+        )
 
 def main():
     try:
