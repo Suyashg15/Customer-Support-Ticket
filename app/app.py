@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 import uvicorn
 from pyngrok import ngrok
 from pydantic import BaseModel, EmailStr
+from fastapi.middleware.cors import CORSMiddleware
 from sentiment_analysis import analyze_sentiment_gemini, clean_text
 from issue_escalation import required_issue_escalation, issue_escalation
 from response_automation import get_product_body, get_product_subject
@@ -16,7 +17,10 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import requests
+# import subprocess
+# import threading
 import google.generativeai as genai
+import certifi
 from pymongo import MongoClient
 from datetime import datetime
 import os
@@ -24,6 +28,21 @@ from dotenv import load_dotenv
 
 app = FastAPI()
 
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# @app.get("/")
+# async def health_check():
+#     return {"status": "healthy", "message": "API is running"}
+
+# def run_streamlit():
+#     # Run Streamlit on port 8501 (default Streamlit port)
+#     subprocess.run(["streamlit", "run", "rough/6._Issue-Prevention-Dashboard/test.py"])
 
 class SentimentRequest(BaseModel):
     text: str
@@ -251,7 +270,6 @@ def save_issue(email: EmailStr, subject:str, text:str):
             "created_at": datetime.utcnow()
         }
         else:
-            
             issue_document = {
                 "email": email,
                 "subject": subject,
@@ -266,6 +284,8 @@ def save_issue(email: EmailStr, subject:str, text:str):
         
         
         return {
+            "subject":subject,
+            "Response":response,
             "status": "success",
             "message": "Issue saved successfully and solution has been Send to you Email to MongoDB Atlas",
             "issue_id": str(result.inserted_id)
@@ -281,11 +301,37 @@ def main():
     try:
         # Start ngrok tunnel
         port = 8000
+        # ngrok.set_auth_token('2rB0PWTaIJSARv0rDc1h1FhrbSV_6TSGm868LVZtTai2myncV')   
+        
+        # streamlit_thread = threading.Thread(target=run_streamlit, daemon=True)
+        # streamlit_thread.start()
+    
         public_url = ngrok.connect(port).public_url
         print(f'Public URL: {public_url}')
         
+        # # Save the URL to a file
+        # with open('ngrok_url.txt', 'w') as f:
+        #     f.write(public_url)
+            
         # Start FastAPI
         uvicorn.run(app, host="0.0.0.0", port=port)
+        
+        # fastapi_tunnel = ngrok.connect(port, "http")
+        # streamlit_tunnel = ngrok.connect(8501, "http")
+        
+        # print(f'FastAPI tunnel: {fastapi_tunnel.public_url}')
+        # print(f'Streamlit tunnel: {streamlit_tunnel.public_url}')
+        
+        # # Save the URLs to files
+        # with open('ngrok_url.txt', 'w') as f:
+        #     f.write(fastapi_tunnel.public_url)
+        
+        # with open('streamlit_url.txt', 'w') as f:
+        #     f.write(streamlit_tunnel.public_url)
+        
+        # # Start the FastAPI app
+        # uvicorn.run(app, host="127.0.0.1", port=port)
+        
     except Exception as e:
         print(f"Startup error: {str(e)}")
         raise

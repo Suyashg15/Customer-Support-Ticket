@@ -33,7 +33,7 @@ def generate_personalized_response(query, similar_answers):
     Customer Query: {query}
     Similar Issues and Answers: {similar_answers}
 
-    Generate a helpful and personalized response based on past resolutions.
+    Generate a helpful and personalized solution response based on similar answers.
     """
     model = genai.GenerativeModel('gemini-pro')
     response = model.generate_content(prompt)
