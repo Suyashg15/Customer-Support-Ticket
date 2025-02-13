@@ -1,0 +1,12 @@
+streamlit
+streamlit-option-menu
+pandas
+nltk
+textblob
+google-generativeai
+pinecone-client
+scikit-learn
+pymongo
+python-dotenv
+requests
+certifi 
