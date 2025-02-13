@@ -9,4 +9,7 @@ scikit-learn
 pymongo
 python-dotenv
 requests
-certifi 
+certifi
+transformers
+torch
+sentence-transformers
