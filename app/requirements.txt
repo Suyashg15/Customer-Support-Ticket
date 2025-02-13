@@ -13,3 +13,5 @@ certifi
 transformers
 torch
 sentence-transformers
+fastapi
+uvicorn

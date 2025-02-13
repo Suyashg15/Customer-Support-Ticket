@@ -284,7 +284,7 @@ def main():
         
         if view_pipeline:
             st.subheader("Sentiment Analysis Pipeline")
-            st.image(".\sentiment analysis pipeline.jpg",
+            st.image("sentiment analysis pipeline.jpg",
                     caption="Sentiment Analysis Pipeline",
                     width=600)
             st.markdown("""
@@ -341,7 +341,7 @@ def main():
         
         if view_pipeline:
             st.subheader("Issue Escalation Pipeline")
-            st.image(".\issue_escalation pipeline.png",
+            st.image("issue_escalation pipeline.png",
                     caption="Escalation Prediction Infrastructure",
                     use_container_width=True)
             st.markdown("""
@@ -411,7 +411,7 @@ def main():
         
         if view_pipeline:
             st.subheader("Response Generation Pipeline")
-            st.image(".\\response automation pipeline.jpg",
+            st.image("response automation pipeline.jpg",
                     caption="Automated Response Infrastructure",
                     use_container_width=True)
             st.markdown("""
