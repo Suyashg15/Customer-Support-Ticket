@@ -251,11 +251,18 @@ def main():
             if body:
                 sentiment, explanation= perform_sentiment_analysis(body)
                 
-                col1, col2= st.columns(2)
-                with col1:
-                    st.metric("Sentiment", sentiment)
-                with col2:
-                    st.metric('Explanation', explanation)
+                # col1, col2= st.columns(2)
+                # with col1:
+                sentiment_emojis = {
+                    "Positive": "🙂",
+                    "Neutral": "😐",
+                    "Negative": "🙁",
+                    "Frustrated": "😠",
+                }
+                emoji = sentiment_emojis.get(sentiment, "❓")  # default to question mark if sentiment not found
+                st.metric("Sentiment", f"{emoji} {sentiment}")
+                # with col2:
+                st.text_area('Explanation', explanation)
                 # with col2:
                 #     st.metric("Polarity Score", f"{polarity:.2f}")
                 # with col3:
@@ -277,15 +284,16 @@ def main():
         
         if view_pipeline:
             st.subheader("Sentiment Analysis Pipeline")
-            st.image("https://raw.githubusercontent.com/your-username/your-repo/main/images/sentiment_pipeline.png",
-                    caption="Sentiment Analysis Infrastructure",
-                    use_column_width=True)
+            st.image(".\sentiment analysis pipeline.jpg",
+                    caption="Sentiment Analysis Pipeline",
+                    width=600)
             st.markdown("""
             **Pipeline Steps:**
             1. Text Input Processing
-            2. TextBlob Sentiment Analysis
-            3. Score Calculation
-            4. Category Classification
+            2. LLM API Calling
+            3. Sentiment Analysis
+            4. Prompt Engineering
+            5. Category Classification
             """)
     
     elif selected == "Issue Escalation":
@@ -309,7 +317,15 @@ def main():
                 priority = predict_escalation(title, body)
                 
                 if priority == True:
-                    st.error("🚨 High Priority Issue!")
+                    st.markdown("""
+                        <div style='padding: 20px; background-color: rgba(255, 75, 75, 0.8); color: white; 
+                        font-size: 24px; font-weight: bold; border-radius: 10px; 
+                        text-align: center; margin: 10px 0px;'>
+                        🚨 HIGH PRIORITY ISSUE! 🚨
+                        </div>
+                        """, 
+                        unsafe_allow_html=True
+                    )
                 else:
                     st.success("✓ Normal Priority Issue")
                 
@@ -325,9 +341,9 @@ def main():
         
         if view_pipeline:
             st.subheader("Issue Escalation Pipeline")
-            st.image("https://raw.githubusercontent.com/your-username/your-repo/main/images/escalation_pipeline.png",
+            st.image(".\issue_escalation pipeline.png",
                     caption="Escalation Prediction Infrastructure",
-                    use_column_width=True)
+                    use_container_width=True)
             st.markdown("""
             **Pipeline Steps:**
             1. Text Preprocessing
@@ -370,16 +386,16 @@ def main():
                 
                 # if priority != "Normal Priority":
                 #     st.warning(f"Priority: {priority}")
-                col1, col2, col3, col4 = st.columns(4)
+                # col1, col2, col3, col4 = st.columns(4)
                 
-                with col1:
-                    st.metric("Status", issue_result['status'])
-                with col2:
-                    st.text_area("Generated Response", issue_result['Response'], height=150)
-                with col3:
-                    st.metric("Message", issue_result['message'])
-                with col4:
-                    st.metric("ID", issue_result['issue_id'])
+                # with col1:
+                st.metric("Status", issue_result['status'])
+                # with col2:
+                st.text_area("Generated Response", issue_result['Response'], height=150)
+                # with col3:
+                st.text_area("Message", issue_result['message'])
+                # with col4:
+                st.metric("Issue ID", issue_result['issue_id'])
                 
                 
                 st.markdown(f"""
@@ -395,9 +411,9 @@ def main():
         
         if view_pipeline:
             st.subheader("Response Generation Pipeline")
-            st.image("https://raw.githubusercontent.com/your-username/your-repo/main/images/response_pipeline.png",
+            st.image(".\\response automation pipeline.jpg",
                     caption="Automated Response Infrastructure",
-                    use_column_width=True)
+                    use_container_width=True)
             st.markdown("""
             **Pipeline Steps:**
             1. Text Analysis
