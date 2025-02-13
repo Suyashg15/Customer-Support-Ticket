@@ -181,7 +181,7 @@ def save_issue(email, subject, text):
             "subject":subject,
             "Response":response,
             "status": "success",
-            "message": "Issue saved successfully and solution has been Send to you Email to MongoDB Atlas",
+            "message": "Issue saved successfully and solution has been Send to your Email to MongoDB Atlas",
             "issue_id": str(result.inserted_id)
         }
         return issue_result
@@ -196,7 +196,7 @@ def save_issue(email, subject, text):
 
 
 def main():
-    st.set_page_config(page_title="Issue Analysis Tool", layout="wide")
+    st.set_page_config(page_title="AI Enhanced Customer Support System", layout="wide")
     
     # Custom CSS for better styling
     st.markdown("""
@@ -212,7 +212,7 @@ def main():
     
     # Sidebar Navigation
     with st.sidebar:
-        st.title("Navigation")
+        st.title("AI-Enhanced Customer Support Ticket System")
         selected = option_menu(
             menu_title=None,
             options=["Sentiment Analysis", "Issue Escalation", "Automated Response"],
@@ -389,7 +389,10 @@ def main():
                 # col1, col2, col3, col4 = st.columns(4)
                 
                 # with col1:
-                st.metric("Status", issue_result['status'])
+                if issue_result['status']=="success":
+                    st.success(issue_result['status'])
+                else:
+                    st.metric("Status", issue_result['status'])
                 # with col2:
                 st.text_area("Generated Response", issue_result['Response'], height=150)
                 # with col3:
@@ -398,14 +401,14 @@ def main():
                 st.metric("Issue ID", issue_result['issue_id'])
                 
                 
-                st.markdown(f"""
-                    <div style="background-color: #f0f2f6; padding: 1rem; border-radius: 0.5rem;">
-                        <p style="margin-bottom: 0.5rem;"><strong>Quick Actions:</strong></p>
-                        <button onclick="navigator.clipboard.writeText('{issue_result['Response']}')" style="padding: 0.5rem 1rem;">
-                            Copy Response
-                        </button>
-                    </div>
-                """, unsafe_allow_html=True)
+                # st.markdown(f"""
+                #     <div style="background-color: #f0f2f6; padding: 1rem; border-radius: 0.5rem;">
+                #         <p style="margin-bottom: 0.5rem;"><strong>Quick Actions:</strong></p>
+                #         <button onclick="navigator.clipboard.writeText('{issue_result['Response']}')" style="padding: 0.5rem 1rem;">
+                #             Copy Response
+                #         </button>
+                #     </div>
+                # """, unsafe_allow_html=True)
             else:
                 st.warning("Please enter either a title or body text to generate a response")
         
