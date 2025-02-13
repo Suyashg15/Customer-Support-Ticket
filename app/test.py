@@ -119,7 +119,7 @@ load_dotenv()
 # MongoDB Atlas connection setup
 MONGODB_URI = os.getenv('MONGODB_URI')
 if not MONGODB_URI:
-    MONGODB_URI = "mongodb+srv://suyashg1975:MgDILwn3bI0vxAsU@cluster0.vmfci.mongodb.net/?retryWrites=true&w=majority"
+    MONGODB_URI = "mongodb+srv://suyashg1975:MgDILwn3bI0vxAsU@cluster0.vmfci.mongodb.net/?retryWrites=true&w=majority&ssl=true"
 
 try:
     client = MongoClient(MONGODB_URI)

@@ -11,7 +11,7 @@ python-dotenv
 requests
 certifi
 transformers
-torch
+torch==1.13.1
 sentence-transformers
 fastapi
 uvicorn
