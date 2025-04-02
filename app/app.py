@@ -192,7 +192,7 @@ def response_automation(email: EmailStr, subject:str, text:str):
         return {"error": f"Analysis failed: {str(e)}"}
 
 # Replace this with your Zapier webhook URL
-ZAPIER_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/21630305/2afz1n8/"
+ZAPIER_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/22312397/2czaxy9/"
 
 @app.post("/webhook")
 def send_email(to_email: EmailStr, subject: str, message: str):
