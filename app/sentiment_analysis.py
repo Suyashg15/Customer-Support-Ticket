@@ -23,7 +23,7 @@ def clean_text(text: str) -> str:
     
     return text
 
-def analyze_sentiment_gemini(text, api_key="AIzaSyDS5qxGT3N2XbqibpY8PyFbomKpe0SCkLE"):
+def analyze_sentiment_gemini(text, api_key="AIzaSyCwP_O5sjkYzBR6YwsD_afcwafSdVdQ1ug"):
     """
     Analyzes the sentiment of a given text using the Gemini API with function calling simulation.
 
@@ -36,7 +36,7 @@ def analyze_sentiment_gemini(text, api_key="AIzaSyDS5qxGT3N2XbqibpY8PyFbomKpe0SC
     """
     # Configure Gemini API
     # genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-pro")
+    model = genai.GenerativeModel("gemini-1.5-pro")
 
     # Define the function schema
     function_schema = {
@@ -78,13 +78,18 @@ def analyze_sentiment_gemini(text, api_key="AIzaSyDS5qxGT3N2XbqibpY8PyFbomKpe0SC
         """
 
         response = model.generate_content(prompt)
-
-        # Parse JSON response from the model
-        sentiment_data = json.loads(response.text)
+        
+        # Clean the response text by removing markdown code blocks
+        response_text = response.text.strip()
+        response_text = response_text.replace('```json\n', '').replace('\n```', '').strip()
+        
+        # Parse the cleaned JSON response
+        sentiment_data = json.loads(response_text)
         return sentiment_data
 
-    except json.JSONDecodeError:
-        print("Failed to decode JSON from the model's response.")
+    except json.JSONDecodeError as e:
+        print(f"Failed to decode JSON from the model's response: {e}")
+        print(f"Raw response: {response.text}")
         return None
     except Exception as e:
         print(f"An error occurred: {e}")

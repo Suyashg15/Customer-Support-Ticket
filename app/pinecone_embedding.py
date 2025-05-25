@@ -2,7 +2,7 @@ import os
 import google.generativeai as genai
 from pinecone import Pinecone, ServerlessSpec
 
-genai.configure(api_key="AIzaSyDS5qxGT3N2XbqibpY8PyFbomKpe0SCkLE")
+genai.configure(api_key="AIzaSyCwP_O5sjkYzBR6YwsD_afcwafSdVdQ1ug")
 # Set the API key as an environment variable
 os.environ["PINECONE_API_KEY"] = "pcsk_2bdKPV_UktpZEf2xjb96kU2FpdFDh4VJ3278CLWYAp3QkcmQsY5Nwaw2qqdV98gxWPLV27"  # Replace with your actual API key
 pc = Pinecone(
@@ -35,7 +35,7 @@ def generate_personalized_response(query, similar_answers):
 
     Generate a helpful and personalized solution response based on similar answers.
     """
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel('gemini-1.5-pro')
     response = model.generate_content(prompt)
 
     return response.text

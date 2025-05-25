@@ -172,19 +172,27 @@ def save_issue(email, subject, text):
                 "created_at": datetime.utcnow()
             }
         
-        send_email(email,subject,response)
-        # Insert into MongoDB Atlas
-        result = issues_collection.insert_one(issue_document)
-        
-        
-        issue_result = {
-            "subject":subject,
-            "Response":response,
-            "status": "success",
-            "message": "Issue saved successfully and solution has been Send to your Email to MongoDB Atlas",
-            "issue_id": str(result.inserted_id)
-        }
-        return issue_result
+        if predict_escalation(issue_document['subject'],issue_document['text']):
+            return {
+                "subject":subject,
+                'text':text,
+                "status":"pending",
+                "message":"Issue is Escalated the Customer Support will contact you soon"
+            }
+        else:
+            send_email(email,subject,response)
+            # Insert into MongoDB Atlas
+            result = issues_collection.insert_one(issue_document)
+            
+            
+            issue_result = {
+                "subject":subject,
+                "Response":response,
+                "status": "success",
+                "message": "Issue saved successfully and solution has been Send to your Email to MongoDB Atlas",
+                "issue_id": str(result.inserted_id)
+            }
+            return issue_result
     
     except Exception as e:
         print(f"MongoDB Error: {str(e)}")  # For debugging
@@ -215,12 +223,12 @@ def main():
         st.title("AI-Enhanced Customer Support Ticket System")
         selected = option_menu(
             menu_title=None,
-            options=["Sentiment Analysis", "Issue Escalation", "Automated Response"],
-            icons=["emoji-smile", "arrow-up-circle", "chat-dots"],
+            options=["Visualization","Sentiment Analysis", "Issue Escalation", "Automated Response"],
+            icons=["bar-chart","emoji-smile", "arrow-up-circle", "chat-dots"],
             menu_icon="cast",
             default_index=0,
         )
-        
+
         # Add some information in sidebar
         st.markdown("---")
         st.markdown("### About")
@@ -231,8 +239,104 @@ def main():
         - Generating automated responses
         """)
     
-    if selected == "Sentiment Analysis":
+    if selected == "Visualization":
+        st.header("Data Analysis Visualizations")   
+        
+        # Create tabs for different types of visualizations
+        tab1, tab2, tab3 = st.tabs(["Sentiment Distribution", "Data Analysis", "Response Data Analysis"])
+        
+        with tab1:
+            st.subheader("Sentiment Distribution")
+            try:
+                st.image("sentiment_analysis_improvement.png", caption="Distribution of Sentiment in Customer Issues", use_container_width=True)
+                st.markdown("""
+                **Analysis:** This chart shows the distribution of sentiment across customer issues, 
+                helping identify overall customer satisfaction trends.
+                """)
+            except Exception as e:
+                st.error("Sentiment distribution image not found. Please ensure the image file exists.")
+        
+        with tab2:
+            st.subheader("Data Analysis of Historical Data")
+            try:
+                st.image("PCA_scatter_plot_cluster.png", caption="Data Analysis", width = 650)
+                st.markdown("""
+                **Analysis:** This visualization tracks the frequency and patterns of customer Data over time,
+                helping identify potential systemic problems.
+                """)
+            except Exception as e:
+                st.error("Escalation trends image not found. Please ensure the image file exists.")
+        
+        with tab3:
+            st.subheader("Response Data Analysis")
+            try:
+                st.image("percentage_of_products.png", caption="Response Cluster Analysis", width = 550)
+                st.markdown("""
+                **Analysis:** This visualization shows the clustering of similar customer issues, helping identify patterns and common problems.
+                """)
+                
+                st.image("percentage_of_issues.png", caption="Response Data Analysis", width = 650)
+                st.markdown("""
+                **Analysis:** This Analysis shows the cluster distribution of issues of each data or product names in the data trained and embedded.
+                """)
+                
+            except Exception as e:
+                st.error("Response time analysis image not found. Please ensure the image file exists.")
+        
+        # Add a section with catchy content about the project's visualizations
+        st.markdown("---")
+        st.subheader("📊 Why Our Visualizations Matter")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("""
+            ### 🔍 **Data-Driven Insights**
+            
+            Our visualizations transform complex customer support data into clear, actionable insights:
+            
+            - **Sentiment Analysis**: Understand customer emotions at a glance
+            - **Data Clustering**: Identify patterns in customer issues
+            - **Response Analysis**: Optimize support team performance
+            
+            These insights help you make informed decisions and improve customer satisfaction.
+            """)
+        
+        with col2:
+            st.markdown("""
+            ### 🚀 **Business Impact**
+            
+            Leveraging these visualizations leads to:
+            
+            - **Faster Resolution Times**: Identify common issues quickly
+            - **Improved Customer Experience**: Address pain points proactively
+            - **Better Resource Allocation**: Focus support efforts where needed most
+            
+            Turn data into a competitive advantage for your support team!
+            """)
+        
+        st.markdown("""
+        ---
+        **💡 Pro Tip**: The more tickets you process, the more accurate and insightful our visualizations become!
+        """)
+    
+    elif selected == "Sentiment Analysis":
         st.header("Sentiment Analysis")
+        
+        # Add catchy content about sentiment analysis
+        st.markdown("""
+        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #1f77b4;">
+            <h3 style="color: #1f77b4; margin-top: 0;">🔍 Understand Your Customers' Emotions</h3>
+            <p style="color: #31333F; font-size: 16px;">Our advanced sentiment analysis technology uses state-of-the-art AI to detect the emotional tone in customer messages. 
+            This helps you:</p>
+            <ul style="color: #31333F; font-size: 16px;">
+                <li>Identify frustrated customers before they escalate</li>
+                <li>Recognize positive feedback to highlight success stories</li>
+                <li>Understand the overall sentiment trends in your support tickets</li>
+            </ul>
+            <p style="color: #31333F; font-size: 16px;"><strong>💡 Pro Tip:</strong> Pay special attention to tickets with negative sentiment - they often represent opportunities for improvement!</p>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Create top-level buttons above inputs
         col1, col2 = st.columns(2)
@@ -299,6 +403,21 @@ def main():
     elif selected == "Issue Escalation":
         st.header("Issue Escalation Prediction")
         
+        # Add catchy content about issue escalation
+        st.markdown("""
+        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #ff7f0e;">
+            <h3 style="color: #ff7f0e; margin-top: 0;">🚨 Prevent Escalations Before They Happen</h3>
+            <p style="color: #31333F; font-size: 16px;">Our AI-powered escalation prediction system analyzes ticket content to identify issues that may require special attention. 
+            This proactive approach helps you:</p>
+            <ul style="color: #31333F; font-size: 16px;">
+                <li>Reduce resolution times for critical issues</li>
+                <li>Allocate resources more effectively</li>
+                <li>Improve customer satisfaction by addressing problems early</li>
+            </ul>
+            <p style="color: #31333F; font-size: 16px;"><strong>💡 Pro Tip:</strong> Review the escalation reasons to identify patterns that might indicate systemic issues in your product or service.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
         # Create top-level buttons above inputs
         col1, col2 = st.columns(2)
         with col1:
@@ -352,8 +471,23 @@ def main():
             4. Reason Attribution
             """)
     
-    else:  # Automated Response
+    elif selected == "Automated Response":
         st.header("Automated Response Generation")
+        
+        # Add catchy content about automated responses
+        st.markdown("""
+        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #2ca02c;">
+            <h3 style="color: #2ca02c; margin-top: 0;">🤖 AI-Powered Responses That Feel Human</h3>
+            <p style="color: #31333F; font-size: 16px;">Our automated response system generates personalized, context-aware replies to customer issues. 
+            This innovative technology helps you:</p>
+            <ul style="color: #31333F; font-size: 16px;">
+                <li>Respond to customers 24/7 without human intervention</li>
+                <li>Maintain consistent tone and quality across all responses</li>
+                <li>Free up your support team to focus on complex issues</li>
+            </ul>
+            <p style="color: #31333F; font-size: 16px;"><strong>💡 Pro Tip:</strong> While our AI generates excellent responses, always review them for accuracy before sending to ensure the best customer experience.</p>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Create top-level buttons above inputs
         col1, col2 = st.columns(2)
@@ -387,18 +521,28 @@ def main():
                 # if priority != "Normal Priority":
                 #     st.warning(f"Priority: {priority}")
                 # col1, col2, col3, col4 = st.columns(4)
-                
                 # with col1:
                 if issue_result['status']=="success":
                     st.success(issue_result['status'])
+                    # with col2:
+                    st.text_area("Generated Response", issue_result['Response'], height=150)
+                    # with col3:
+                    st.text_area("Message", issue_result['message'])
+                    # with col4:
+                    st.metric("Issue ID", issue_result['issue_id'])
                 else:
-                    st.metric("Status", issue_result['status'])
-                # with col2:
-                st.text_area("Generated Response", issue_result['Response'], height=150)
-                # with col3:
-                st.text_area("Message", issue_result['message'])
-                # with col4:
-                st.metric("Issue ID", issue_result['issue_id'])
+                    st.text_area("Subject", issue_result['subject'])
+                    st.text_area("Text", issue_result['text'])
+                    st.markdown("""
+                        <div style='padding: 20px; background-color: rgba(255, 75, 75, 0.8); color: white; 
+                        font-size: 24px; font-weight: bold; border-radius: 10px; 
+                        text-align: center; margin: 10px 0px;'>
+                        🚨 HIGH PRIORITY ISSUE! 🚨
+                        </div>
+                        """, 
+                        unsafe_allow_html=True
+                    )
+                    st.success(issue_result['message'])
                 
                 
                 # st.markdown(f"""

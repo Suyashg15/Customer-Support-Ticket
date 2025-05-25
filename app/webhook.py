@@ -1,7 +1,7 @@
 import requests
 from fastapi import FastAPI, HTTPException
 
-ZAPIER_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/21630305/2afz1n8/"
+ZAPIER_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/22312397/2czaxy9/"
 
 def send_email(to_email, subject, response):
     if not to_email or "@" not in to_email:
